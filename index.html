@@ -1,6 +1,186 @@
-<html>
-  <title>마리오</title>
-  <body>
-    <h1>Hello World</h1>
-  </body>
-</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>마리오게임</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        body{
+            margin: auto;
+        }
+        html, body{
+            height: 100%;
+        }
+        
+        #mario {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            bottom: 0px;
+            left: 50px;
+        }
+        #enemy {
+            position: absolute;
+            width: 50px;
+            bottom: 0px;
+            right: 50px;
+        }
+        #score {
+            position: absolute;
+            width: 200px;
+            top: 15%;
+            left: 50%;
+            color: darkviolet;
+            font-weight: 900;
+            font-size: 30px;
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        }
+        #rocket {
+            position: absolute;
+            width: 100px;
+            bottom: 0px;
+            left:-100px;
+            display: none;
+        }
+        #container {
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            background: url("asset/mbg.gif");
+            background-repeat: repeat;
+            background-size: contain;
+            background-attachment: fixed;
+            animation: bg-slide 100s linear infinite;
+            animation-fill-mode: forwards;               
+        }
+ 
+        @keyframes bg-slide {
+            from {background-position: 0 0;}
+            to {background-position: -10000px 0px;}
+        }
+
+    </style>
+
+</head>
+<body>
+    <div id="container">
+        <img id="mario" src="asset/mario4.gif" alt="">
+        <img id="enemy" src="asset/goomba.gif" alt="">      
+        <img id="rocket" src="asset/rocket3.png" alt="">
+    </div> 
+    <div id="score"></div>
+    
+    <script>
+        let score = 0;
+
+        let isJumping = false;
+        //마리오 점프
+        function jump() {
+            isJumping = true;
+            $("#mario").animate({
+                bottom: "+=100px"
+            }).animate({
+                bottom: "-=100px"
+            }, function () {
+                isJumping = false;
+            });
+        }
+
+        //로켓 발사
+        let isLaunch = false;
+        function launch() {
+            isLaunch = true;
+            $("#rocket").show();
+            $("#rocket").animate({
+               left: "40%" 
+            },2500, 'linear',  function () {
+               $("#rocket").css("left", "-100px"); 
+               isLaunch = false;
+            });
+        }
+
+        //마리오 사망 여부
+        function deadCheck() {
+            let isDead = false;
+
+            let mario = $("#mario");
+            let enemy = $("#enemy");
+
+            let marioRightX = 
+            parseInt(mario.css("left").replace("px", "")) + parseInt(mario.css("width").replace("px", ""));
+            let enemyLeftX = parseInt(enemy.css("left").replace("px", ""));
+            let marioBottomY = parseInt(mario.css("bottom").replace("px", ""));
+            let enemyTopY = parseInt(enemy.css("height").replace("px", ""));
+
+            if (marioRightX > enemyLeftX && marioBottomY < enemyTopY && enemyLeftX > 50) {
+                isDead = true;
+            } else if (marioRightX > enemyLeftX && marioBottomY > enemyTopY && enemyLeftX > 135) {
+                score += 100;
+                console.log(score);
+            }
+            return isDead;
+        }
+        
+        //굼바 죽이기
+        function killGoomba() {
+            let rocket = $("#rocket");
+            let enemy = $("#enemy");
+
+            let rocketRightX = 
+            parseInt(rocket.css("left").replace("px", "")) + parseInt(rocket.css("width").replace("px", ""));
+            let enemyLeftX = parseInt(enemy.css("left").replace("px", ""));
+
+            if (rocketRightX > enemyLeftX && enemyLeftX > (rocketRightX-100)){   
+                $("#enemy").stop(true,true); 
+                $("#rocket").stop(true,true);
+                score += 200;
+                console.log(score);
+            }
+        }
+ 
+        //굼바 이동
+        function goombaMove() {
+            $("#enemy").animate({
+               right: "110%" 
+            }, 5000, function () {
+               $("#enemy").css("right", "-100px");  
+            }); 
+        }
+
+        //스페이스바 누르면 점프
+        $("body").keydown(function (event) {
+            switch(event.code) {
+                case "Space":
+                    //스페이스 연타 방지
+                    if (isJumping == false) {
+                        jump();
+                    }
+                    break;
+            }
+        });
+
+        //엔터 누르면 로켓 발사
+        $("body").keydown(function (event) {
+            switch(event.code) {
+                case "Enter":
+                    //스페이스 연타 방지
+                    if (isLaunch == false) {
+                        launch();
+                    }
+                    break;
+            }
+        });
+ 
+        setInterval(function () {
+            goombaMove();
+            killGoomba();
+            //죽었는지 체크
+            if (deadCheck()) {
+            alert("마리오 사망");
+            } else {
+                $("#score").text("score : "+ score); 
+            }          
+        }, 25);
+         
+    </script>
+</body>
+</html> 
